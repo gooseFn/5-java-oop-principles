@@ -1,4 +1,4 @@
-package com.example.task01;
+package com.example.task04;
 
 import java.text.MessageFormat;
 import java.time.LocalDateTime;
@@ -9,16 +9,26 @@ public class Logger {
     private final String name;
     private ErrorLevel level;
     private static final ArrayList<Logger> loggers = new ArrayList<>();
+    private static ArrayList<MessageHandler> handlers = new ArrayList<>();
 
     public Logger(String name) {
         this.name = name;
         this.level = ErrorLevel.INFO;
         loggers.add(this);
+        handlers.add(new ConsoleHandler());
     }
 
-    public Logger(String name, ErrorLevel level) {
+    public Logger(String name, ArrayList<MessageHandler> messageHandlers) {
+        this.name = name;
+        this.level = ErrorLevel.INFO;
+        handlers = messageHandlers;
+        loggers.add(this);
+    }
+
+    public Logger(String name, ErrorLevel level, ArrayList<MessageHandler> messageHandlers) {
         this.name = name;
         this.level = level;
+        handlers = messageHandlers;
         loggers.add(this);
     }
 
@@ -45,13 +55,16 @@ public class Logger {
         if (this.level.ordinal() <= level.ordinal()) {
             String dateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy.MM.dd hh:mm:ss"));
             String formattedMessage = MessageFormat.format("[{0}] {1} {2} - {3}", level, dateTime, name, message);
-            System.out.println(formattedMessage);
+            for (MessageHandler messageHandler : handlers)
+                messageHandler.log(formattedMessage);
         }
     }
 
     public void log(ErrorLevel level, String pattern, Object... args) {
         if (this.level.ordinal() <= level.ordinal()) {
-            System.out.println(MessageFormat.format(pattern, args));
+            String message = MessageFormat.format(pattern, args);
+            for (MessageHandler messageHandler : handlers)
+                messageHandler.log(message);
         }
     }
 
